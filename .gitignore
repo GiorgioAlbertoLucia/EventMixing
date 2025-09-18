@@ -39,3 +39,9 @@
 
 # debug information files
 *.dwo
+
+# Data files
+*.root
+
+# ROOT dictionaries
+*.pcm
