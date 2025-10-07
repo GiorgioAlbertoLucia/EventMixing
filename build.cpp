@@ -16,5 +16,8 @@ void build(TString myopt = "fast") {
     if(myopt.Contains("force"))   opt = "kfg";
     else                          opt = "kg";
   
-    gSystem->CompileMacro("src/eventMixingLi4.cxx", opt.Data(), "", "build");
+    gSystem->AddIncludePath((std::string("-I ")+ "/home/galucia/yaml-cpp/include").c_str());
+    gSystem->Load("/home/galucia/yaml-cpp/build/libyaml-cpp.so");
+    
+    gSystem->CompileMacro("src/mixingLi4.cxx", opt.Data(), "", "build");
 }

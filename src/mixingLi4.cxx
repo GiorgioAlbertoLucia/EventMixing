@@ -8,20 +8,17 @@
 
 #include <TRandom3.h>
 
-#include "../include/treeUtils.hh"
+#include "../include/core/treeUtils.hh"
 #include "../include/li4/li4candidates.hh"
 #include "../include/li4/mixing.hh"
 
+#include <yaml-cpp/yaml.h>
 
-
-void mergeTrees(const char * candidatesFileName = "inputCands.root", 
+void mergeTrees(const char * inputFileName,
+                const char * candidatesFileName = "inputCands.root", 
                 const char * collisionsFileName = "inputColls.root",
                 const char * treeNameCands = "O2he3hadtable", const char * treeNameColls = "O2he3hadmult")
 {
-    const char * inputFileName = "/data/galucia/lithium_local/same/LHC23_PbPb_pass4_long_same_lsus.root";
-    //const char * inputFileName = "/data/galucia/lithium_local/same/LHC24as_pass1_same.root";
-    //const char * inputFileName = "/Users/glucia/Projects/ALICE/data/lithium/same/LHC24as_pass1_same.root";
-    //const char * inputFileName = "/Users/glucia/Projects/ALICE/data/lithium/same/LHC24ag_pass1_skimmed_same.root";
 
     TFile * inputCandsFile = TFile::Open(candidatesFileName, "RECREATE");
     TFile * inputCollsFile = TFile::Open(collisionsFileName, "RECREATE");
@@ -33,8 +30,7 @@ void mergeTrees(const char * candidatesFileName = "inputCands.root",
     inputCollsFile->Close();
 }
 
-void eventMixingLi4(const bool doMerge = false, const int mixingStrategy = mixing::MixingStrategy::kEvent,
-                    const int mixingDepth = 2)
+void mixingLi4(const char * configFileName = "config/configMixingLi4.yml")
 {   
     TStopwatch timer;
     HistogramsQA histQA;
@@ -45,8 +41,14 @@ void eventMixingLi4(const bool doMerge = false, const int mixingStrategy = mixin
     const char * candidatesTreeName = "O2he3hadtable";
     const char * collisionsTreeName = "O2he3hadmult";
 
+    YAML::Node config = YAML::LoadFile(configFileName);
+    const bool doMerge = config["doMerge"].as<bool>();
+    const int mixingStrategy = config["mixingStrategy"].as<int>();
+    const int mixingDepth = config["mixingDepth"].as<int>();
+
     if (doMerge) {
-        mergeTrees(candidatesFileName, collisionsFileName, candidatesTreeName, collisionsTreeName);
+        std::string inputFileName = config["inputFileName"].as<std::string>();
+        mergeTrees(inputFileName.c_str(), candidatesFileName, collisionsFileName, candidatesTreeName, collisionsTreeName);
     }
 
     TFile *inputCandsFile = TFile::Open(candidatesFileName);
@@ -60,12 +62,11 @@ void eventMixingLi4(const bool doMerge = false, const int mixingStrategy = mixin
     auto collisionBrackets = mixing::fillParticlesFromTree(inputCollisionTree, inputCandidateTree, hadCandidates,
                                                            he3Candidates, collisionCandidates, histQA);
 
-    std::string strategyName = (mixingStrategy == mixing::MixingStrategy::kEvent) ? "event" : "rotation";
-    auto outputFile = TFile::Open(Form("/data/galucia/lithium_local/mixing/LHC23_PbPb_pass4_%s_mixing_lsus_small.root", strategyName.c_str()), "RECREATE"); 
-    //auto outputFile = TFile::Open("/data/galucia/lithium_local/mixing/LHC24as_pass1_mixing_lsus_new.root", "RECREATE");
-    //auto outputFile = TFile::Open("/Users/glucia/Projects/ALICE/data/lithium/mixing/LHC24ar_pass1_mixing.root", "RECREATE");
-    //auto outputFile = TFile::Open("/Users/glucia/Projects/ALICE/data/lithium/mixing/LHC24as_pass1_mixing_small.root", "RECREATE");
-    //auto outputFile = TFile::Open("/Users/glucia/Projects/ALICE/data/lithium/same/LHC24ag_pass1_skimmed_mixing.root", "RECREATE");
+    inputCandsFile->Close();
+    inputCollsFile->Close();
+
+    std::string outputFileName = config["outputFileName"].as<std::string>();
+    auto outputFile = TFile::Open(outputFileName.c_str(), "RECREATE"); 
     auto outputTree = new TTree("MixedTree", "MixedTree");
 
     timer.Start();
