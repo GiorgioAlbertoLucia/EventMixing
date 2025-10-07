@@ -5,8 +5,8 @@
 #include <TTree.h>
 
 #include "histograms.hh"
-#include "../candidates.hh"
-#include "../indexTableUtils.hh"
+#include "../core/candidates.hh"
+#include "../core/indexTableUtils.hh"
 #include "li4candidates.hh"
 
 namespace mixing 
@@ -116,6 +116,7 @@ class Mixer
 void Mixer::performEventMixing(TTree* outputTree, HistogramsQA& histQA)
 {
     Li4Candidate li4Candidate;
+    li4Candidate.setBranch(outputTree);
 
     std::vector<int> hadronProcessTimes(fHadrons.size(), 0);
     const int maxProcessTimes = 10;
@@ -187,6 +188,7 @@ void Mixer::performEventMixing(TTree* outputTree, HistogramsQA& histQA)
 void Mixer::performAngleMixing(TTree* outputTree, HistogramsQA& histQA)
 {
     Li4Candidate li4Candidate;
+    li4Candidate.setBranch(outputTree);
 
     HistVertexMultiplicity hVertexMultiplicity;
     
@@ -198,7 +200,7 @@ void Mixer::performAngleMixing(TTree* outputTree, HistogramsQA& histQA)
     {
         if (iHe3 % (fHe3s.size()/100) == 0) {
             std::cout << "Processing He3 candidate " << iHe3 << " / " << fHe3s.size() << " (" 
-                      << iHe3/fHe3s.size()*100 << "%)" << std::endl;
+                      << static_cast<float>(iHe3)/fHe3s.size()*100 << "%)" << std::endl;
         }
 
         const He3Candidate& he3Cand = fHe3s[iHe3];

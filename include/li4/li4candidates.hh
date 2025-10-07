@@ -1,8 +1,8 @@
 #pragma once
 
 #include <TTree.h>
-#include "../candidates.hh"
-#include "../physics.hh"
+#include "../core/candidates.hh"
+#include "../core/physics.hh"
 #include "histograms.hh"
 
 class HadCandidate: public Candidate

@@ -70,5 +70,6 @@ struct HistogramsQA
 
         delete cHe3PtComparison;
         delete cInvariantMassComparisonLikeSign;
+        delete cInvariantMassComparisonUnlikeSign;
     }
 };
