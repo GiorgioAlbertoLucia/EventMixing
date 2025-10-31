@@ -8,6 +8,7 @@
 #include "../core/candidates.hh"
 #include "../core/indexTableUtils.hh"
 #include "li4candidates.hh"
+#include "selections.h"
 
 namespace mixing 
 {
@@ -16,9 +17,35 @@ namespace mixing
         kRotation = 1
     };
 
+    bool preliminaryCuts(const He3Candidate& he3, const HadCandidate& had, const CollisionCandidate& collision, const bool is23) {
+        
+        const double pthe3 = (he3.fPIDtrkHe3 == 7) || (he3.fPIDtrkHe3 == 8) || (std::abs(he3.fPtHe3) > 2.5) ? std::abs(he3.fPtHe3) : CorrectPidTrkHe(std::abs(he3.fPtHe3));
+        const double fNSigmaDCAxyHe3 = ComputeNsigmaDCAxyHe(std::abs(pthe3), he3.fDCAxyHe3);
+        const double fNSigmaDCAzHe3 = ComputeNsigmaDCAzHe(std::abs(pthe3), he3.fDCAzHe3);
+        const double fNSigmaDCAxyHad = ComputeNsigmaDCAxyPr(std::abs(had.fPtHad), had.fDCAxyHad);
+        const double fNSigmaDCAzHad = ComputeNsigmaDCAzPr(std::abs(had.fPtHad), had.fDCAzHad);
+
+        if ((std::abs(pthe3) < 2.5 || he3.fPIDtrkHe3 == 7) &&
+            std::abs(had.fNSigmaTPCHad) < 2 &&
+            std::abs(fNSigmaDCAxyHe3) < 3 &&
+            std::abs(fNSigmaDCAzHe3) < 3 &&
+            std::abs(fNSigmaDCAxyHad) < 3 &&
+            std::abs(fNSigmaDCAzHad) < 3 &&
+            std::abs(he3.fEtaHe3) < 0.9 &&
+            std::abs(had.fEtaHad) < 0.9 &&
+            ((he3.fChi2TPCHe3 > 0.5) || (is23 == false)) && 
+            (he3.fChi2TPCHe3 < 4) &&
+            (had.fChi2TPCHad < 4))
+
+            return true;
+        
+        return false;
+    }
+
     std::vector<std::vector<CollHadBracket>> fillParticlesFromTree(TTree* inputCollisionTree, TTree* inputCandidateTree, 
                                                                    std::vector<HadCandidate>& hadrons, std::vector<He3Candidate>& he3s,
-                                                                   std::vector<CollisionCandidate>& collisions, HistogramsQA& histQA) {
+                                                                   std::vector<CollisionCandidate>& collisions, HistogramsQA& histQA,
+                                                                   const bool applyCuts = false, const bool is23 = false) {
 
         HistVertexMultiplicity hVertexMultiplicity;
         std::vector<std::vector<CollHadBracket>> collisionBracket;
@@ -40,6 +67,10 @@ namespace mixing
         {
             inputCollisionTree->GetEntry(iEntry);
             inputCandidateTree->GetEntry(iEntry);
+
+            if (applyCuts)
+                if (!preliminaryCuts(he3Cand, hadCand, collCand, is23))
+                    continue;
 
             hadCand.fZHad = collCand.fZVertex;
             hadCand.fCentralityFT0C = collCand.fCentralityFT0C;
@@ -97,9 +128,9 @@ class Mixer
         Mixer(const std::vector<HadCandidate>& hadrons, const std::vector<He3Candidate>& he3s, 
               const std::vector<CollisionCandidate>& collisions, 
               const std::vector<std::vector<CollHadBracket>>& collisionBrackets,
-              const int mixingDepth = 5)
+              const int mixingDepth = 5, const bool  is23 = false)
             : fHadrons(hadrons), fHe3s(he3s), fCollisions(collisions), fCollisionBrackets(collisionBrackets),
-             fMixingDepth(mixingDepth) {}
+             fMixingDepth(mixingDepth), fIs23(is23) {}
         ~Mixer() = default;
 
         void performEventMixing(TTree* outputTree, HistogramsQA& histQA);
@@ -111,6 +142,7 @@ class Mixer
         std::vector<CollisionCandidate> fCollisions;
         std::vector<std::vector<CollHadBracket>> fCollisionBrackets;
         int fMixingDepth = 5;
+        bool fIs23 = false;
 };
 
 void Mixer::performEventMixing(TTree* outputTree, HistogramsQA& histQA)
@@ -131,7 +163,7 @@ void Mixer::performEventMixing(TTree* outputTree, HistogramsQA& histQA)
     {
         if (iHe3 % (fHe3s.size()/100) == 0) {
             std::cout << "Processing He3 candidate " << iHe3 << " / " << fHe3s.size() << " (" 
-                      << static_cast<float>(iHe3)/fHe3s.size()*100 << "%)" << std::endl;
+                      << static_cast<int>(static_cast<float>(iHe3)/fHe3s.size()*100) << "%)" << std::endl;
         }
 
         const He3Candidate& he3Cand = fHe3s[iHe3];
@@ -167,6 +199,7 @@ void Mixer::performEventMixing(TTree* outputTree, HistogramsQA& histQA)
                 li4Candidate.setHad(hadCand);
                 li4Candidate.setZVertex(collCand.fZVertex);
                 li4Candidate.setCentralityFT0C(collCand.fCentralityFT0C);
+                li4Candidate.setIs23(fIs23);
                 if (!true){ // conditions on the li4 pair
                     continue;
                 }
@@ -219,6 +252,7 @@ void Mixer::performAngleMixing(TTree* outputTree, HistogramsQA& histQA)
         for (int iHad = fCollisionBrackets[iBin][iBracketIdx].GetMin(); iHad <= fCollisionBrackets[iBin][iBracketIdx].GetMax(); iHad++) {
             
             li4Candidate.setHad(fHadrons[iHad]);
+            li4Candidate.setIs23(fIs23);
             if (!true){ // conditions on the li4 pair
                 continue;
             }

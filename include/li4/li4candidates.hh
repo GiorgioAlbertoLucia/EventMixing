@@ -17,7 +17,7 @@ class HadCandidate: public Candidate
         float fPtHad, fEtaHad, fPhiHad, fDCAxyHad, fDCAzHad, fSignalTPCHad, fInnerParamTPCHad, fMassTOFHad;
         unsigned int fItsClusterSizeHad, fPIDtrkHad;
         unsigned char fSharedClustersHad;
-        float fNSigmaTPCHad, fChi2TPCHad;
+        float fNSigmaTPCHad, fNSigmaTOFHad, fChi2TPCHad;
         float fZHad, fCentralityFT0C;
         int CollID = -1;
 
@@ -34,7 +34,11 @@ class HadCandidate: public Candidate
             tree->SetBranchAddress("fItsClusterSizeHad", &fItsClusterSizeHad);
             tree->SetBranchAddress("fPIDtrkHad", &fPIDtrkHad);
             tree->SetBranchAddress("fSharedClustersHad", &fSharedClustersHad);
-            tree->SetBranchAddress("fNSigmaTPCHad", &fNSigmaTPCHad);
+            
+            //tree->SetBranchAddress("fNSigmaTPCHad", &fNSigmaTPCHad);
+            tree->SetBranchAddress("fNSigmaTPCHadPr", &fNSigmaTPCHad);
+            tree->SetBranchAddress("fNSigmaTOFHadPr", &fNSigmaTOFHad);
+            
             tree->SetBranchAddress("fChi2TPCHad", &fChi2TPCHad);
         }
 };
@@ -85,6 +89,7 @@ class CollisionCandidate: public Candidate
 
         float fZVertex = -99., fCentralityFT0C;
         int CollID = -1;
+        bool fIs23 = false;
 
         void setBranchAddress(TTree * tree) override {
             tree->SetBranchAddress("fZVertex", &fZVertex);
@@ -107,6 +112,7 @@ class Li4Candidate
         inline void setColl(const CollisionCandidate& coll) { fColl = coll; }
         inline void setZVertex(const float z) { fColl.fZVertex = z; }
         inline void setCentralityFT0C(const float cent) { fColl.fCentralityFT0C = cent; }
+        inline void setIs23(const bool is23) {  fColl.fIs23 = is23; }
         
         void setBranch(TTree* tree);
         float calcInvMass() const;
@@ -183,11 +189,16 @@ void Li4Candidate::setBranch(TTree* tree)
     tree->Branch("fSharedClustersHe3", &fHe3.fSharedClustersHe3);
     tree->Branch("fSharedClustersHad", &fHad.fSharedClustersHad);
     tree->Branch("fNSigmaTPCHe3", &fHe3.fNSigmaTPCHe3);
-    tree->Branch("fNSigmaTPCHad", &fHad.fNSigmaTPCHad);
+    
+    //tree->Branch("fNSigmaTPCHad", &fHad.fNSigmaTPCHad);
+    tree->Branch("fNSigmaTPCHadPr", &fHad.fNSigmaTPCHad);
+    tree->Branch("fNSigmaTOFHadPr", &fHad.fNSigmaTOFHad);
+
     tree->Branch("fChi2TPCHe3", &fHe3.fChi2TPCHe3);
     tree->Branch("fChi2TPCHad", &fHad.fChi2TPCHad);
     tree->Branch("fZVertex", &fColl.fZVertex);
     tree->Branch("fCentralityFT0C", &fColl.fCentralityFT0C);
+    tree->Branch("fIs23", &fColl.fIs23);
 }
 
 float Li4Candidate::li4InvMass(const He3Candidate& he3, const HadCandidate& had)

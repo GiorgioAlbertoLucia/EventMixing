@@ -20,7 +20,7 @@ struct HistVertexMultiplicity {
   int getMultBin(const float mult);
   int getBinIndex(const float zeta, const float mult);
   
-  int mZetaBins = 20, mMultBins = 20;
+  int mZetaBins = 30, mMultBins = 40;
   float minZeta = -10, maxZeta = 10;
   float minMult = 0., maxMult = 100;
 };

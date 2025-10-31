@@ -34,7 +34,6 @@ void mixingLi4(const char * configFileName = "config/configMixingLi4.yml")
 {   
     TStopwatch timer;
     HistogramsQA histQA;
-    gRandom->SetSeed(1995);
 
     const char * candidatesFileName = "/home/galucia/EventMixing/output/inputCands.root";
     const char * collisionsFileName = "/home/galucia/EventMixing/output/inputColls.root";
@@ -45,6 +44,10 @@ void mixingLi4(const char * configFileName = "config/configMixingLi4.yml")
     const bool doMerge = config["doMerge"].as<bool>();
     const int mixingStrategy = config["mixingStrategy"].as<int>();
     const int mixingDepth = config["mixingDepth"].as<int>();
+    const bool is23 = config["is23"].as<bool>();
+    const bool applyCuts = config["applyCuts"].as<bool>();
+    const int randomSeed = config["randomSeed"].as<int>();
+    gRandom->SetSeed(randomSeed);
 
     if (doMerge) {
         std::string inputFileName = config["inputFileName"].as<std::string>();
@@ -60,7 +63,7 @@ void mixingLi4(const char * configFileName = "config/configMixingLi4.yml")
     std::vector<HadCandidate> hadCandidates;
     std::vector<CollisionCandidate> collisionCandidates;
     auto collisionBrackets = mixing::fillParticlesFromTree(inputCollisionTree, inputCandidateTree, hadCandidates,
-                                                           he3Candidates, collisionCandidates, histQA);
+                                                           he3Candidates, collisionCandidates, histQA, applyCuts);
 
     inputCandsFile->Close();
     inputCollsFile->Close();
@@ -70,7 +73,7 @@ void mixingLi4(const char * configFileName = "config/configMixingLi4.yml")
     auto outputTree = new TTree("MixedTree", "MixedTree");
 
     timer.Start();
-    Mixer mixer(hadCandidates, he3Candidates, collisionCandidates, collisionBrackets, mixingDepth);
+    Mixer mixer(hadCandidates, he3Candidates, collisionCandidates, collisionBrackets, mixingDepth, is23);
     if (mixingStrategy == mixing::MixingStrategy::kEvent) {
         mixer.performEventMixing(outputTree, histQA);
     } else if (mixingStrategy == mixing::MixingStrategy::kRotation) {

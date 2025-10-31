@@ -1,12 +1,19 @@
 
 #inputFileName: "/data/galucia/lithium_local/same/LHC23_PbPb_pass5_same.root"
-inputFileName: "/data/galucia/lithium_local/same/LHC24_PbPb_pass2_same.root"
+#inputFileName: "/data/galucia/lithium_local/same/LHC24_PbPb_pass2_same.root"
+#inputFileName: "/data/galucia/lithium_local/same/LHC23_PbPb_pass4_all_same.root"
+inputFileName: "/data/galucia/lithium_local/same/LHC23_PbPb_pass4_hadronpid_same.root"
 
-#outputFileName: "/data/galucia/lithium_local/mixing/LHC23_PbPb_pass5_event_mixing.root"
-#outputFileName: "/data/galucia/lithium_local/mixing/LHC23_PbPb_pass2_rotation_mixing.root"
-outputFileName: "/data/galucia/lithium_local/same/LHC24_PbPb_pass2_event_mixing.root"
-#outputFileName: "/data/galucia/lithium_local/same/LHC24_PbPb_pass2_rotation_mixing.root"
+#outputFileName: "/data/galucia/lithium_local/mixing/LHC23_PbPb_pass5_event_mixing_batch105.root"
+#outputFileName: "/data/galucia/lithium_local/mixing/LHC23_PbPb_pass5_rotation_mixing.root"
+#outputFileName: "/data/galucia/lithium_local/mixing/LHC23_PbPb_pass4_all_event_mixing_batch105.root"
+#outputFileName: "/data/galucia/lithium_local/mixing/LHC24_PbPb_pass2_event_mixing_batch105.root"
+#outputFileName: "/data/galucia/lithium_local/mixing/LHC24_PbPb_pass2_rotation_mixing.root"
+outputFileName: "/data/galucia/lithium_local/mixing/LHC23_PbPb_pass4_hadronpid_event_mixing_batch42.root"
 
 doMerge: true
 mixingStrategy: 0 # 0: event mixing, 1: angle mixing
-mixingDepth: 2
+mixingDepth: 4
+randomSeed: 42
+is23: true
+applyCuts: true
