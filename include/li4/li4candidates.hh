@@ -186,6 +186,7 @@ void Li4Candidate::setBranch(TTree* tree)
     tree->Branch("fItsClusterSizeHad", &fHad.fItsClusterSizeHad);
     tree->Branch("fPIDtrkHe3", &fHe3.fPIDtrkHe3);
     tree->Branch("fPIDtrkHad", &fHad.fPIDtrkHad);
+    tree->Branch("fNClsTPCHe3", &fHe3.fNClsTPCHe3);
     tree->Branch("fSharedClustersHe3", &fHe3.fSharedClustersHe3);
     tree->Branch("fSharedClustersHad", &fHad.fSharedClustersHad);
     tree->Branch("fNSigmaTPCHe3", &fHe3.fNSigmaTPCHe3);

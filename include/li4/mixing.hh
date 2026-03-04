@@ -1,6 +1,8 @@
 #pragma once
 
 #include <vector>
+#include <unordered_set>
+
 #include <Riostream.h>
 #include <TTree.h>
 
@@ -26,11 +28,11 @@ namespace mixing
         const double fNSigmaDCAzHad = ComputeNsigmaDCAzPr(std::abs(had.fPtHad), had.fDCAzHad);
 
         if ((std::abs(pthe3) < 2.5 || he3.fPIDtrkHe3 == 7) &&
-            std::abs(had.fNSigmaTPCHad) < 2 &&
-            std::abs(fNSigmaDCAxyHe3) < 3 &&
-            std::abs(fNSigmaDCAzHe3) < 3 &&
-            std::abs(fNSigmaDCAxyHad) < 3 &&
-            std::abs(fNSigmaDCAzHad) < 3 &&
+            std::abs(had.fNSigmaTPCHad) < 2.5 &&
+            std::abs(fNSigmaDCAxyHe3) < 4 &&
+            std::abs(fNSigmaDCAzHe3) < 4 &&
+            std::abs(fNSigmaDCAxyHad) < 4 &&
+            std::abs(fNSigmaDCAzHad) < 4 &&
             std::abs(he3.fEtaHe3) < 0.9 &&
             std::abs(had.fEtaHad) < 0.9 &&
             ((he3.fChi2TPCHe3 > 0.5) || (is23 == false)) && 
@@ -154,6 +156,28 @@ void Mixer::performEventMixing(TTree* outputTree, HistogramsQA& histQA)
     const int maxProcessTimes = 10;
 
     HistVertexMultiplicity hVertexMultiplicity;
+    const float tolerance = 1e-7;
+    
+    //std::vector<std::tuple<float, float, float, float, float, float>> processedCandidates; // pt, eta, phi for both He3 and hadron
+    
+    auto floatBitsHash = [](float v) -> size_t {
+        uint32_t bits;
+        std::memcpy(&bits, &v, sizeof(bits));
+        return std::hash<uint32_t>{}(bits);
+    };
+    auto roundFloat = [](float v, float tol) -> float {
+        return std::round(v / tol) * tol;
+    };
+    auto pairKey = [&](float pt3, float eta3, float phi3, float ptH, float etaH, float phiH) -> size_t {
+        size_t seed = 0;
+        for (float v : {roundFloat(pt3, tolerance), roundFloat(eta3, tolerance), roundFloat(phi3, tolerance),
+                        roundFloat(ptH, tolerance), roundFloat(etaH, tolerance), roundFloat(phiH, tolerance)}) {
+            seed ^= floatBitsHash(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+        }
+        return seed;
+    };
+    std::unordered_set<size_t> processedCandidates;
+
     
     std::cout << "--------------------------------" << std::endl;
     std::cout << "Starting event mixing with " << fHadrons.size() << " hadrons and " 
@@ -201,6 +225,29 @@ void Mixer::performEventMixing(TTree* outputTree, HistogramsQA& histQA)
                 li4Candidate.setCentralityFT0C(collCand.fCentralityFT0C);
                 li4Candidate.setIs23(fIs23);
                 if (!true){ // conditions on the li4 pair
+                    continue;
+                }
+
+                // check if the pair was already filled
+                //bool alreadyProcessed = false;
+                //for (const auto& procCand : processedCandidates) {
+                //    if (std::abs(std::get<0>(procCand) - he3Cand.fPtHe3) < tolerance &&
+                //        std::abs(std::get<1>(procCand) - he3Cand.fEtaHe3) < tolerance &&
+                //        std::abs(std::get<2>(procCand) - he3Cand.fPhiHe3) < tolerance &&
+                //        std::abs(std::get<3>(procCand) - hadCand.fPtHad) < tolerance &&
+                //        std::abs(std::get<4>(procCand) - hadCand.fEtaHad) < tolerance &&
+                //        std::abs(std::get<5>(procCand) - hadCand.fPhiHad) < tolerance) {
+                //        alreadyProcessed = true;
+                //        break;
+                //    }
+                //} if (alreadyProcessed) {
+                //    continue;
+                //}
+                //processedCandidates.emplace_back(he3Cand.fPtHe3, he3Cand.fEtaHe3, he3Cand.fPhiHe3, hadCand.fPtHad, hadCand.fEtaHad, hadCand.fPhiHad);
+                
+                // check if the pair was already filled
+                size_t key = pairKey(he3Cand.fPtHe3, he3Cand.fEtaHe3, he3Cand.fPhiHe3, hadCand.fPtHad, hadCand.fEtaHad, hadCand.fPhiHad);
+                if (!processedCandidates.insert(key).second) {
                     continue;
                 }
 

@@ -25,6 +25,7 @@ enum class species {
   kNspecies
 };
 
+
 namespace constant
 {
   const float kMass[static_cast<int>(species::kNspecies)] = {0.938272, 2.8089}; // GeV
@@ -32,22 +33,39 @@ namespace constant
 
 namespace parametrisation
 {
-    std::array<float, 3> kDCAxyResolutionParams[static_cast<int>(species::kNspecies)] = {
-      {0.0032, 0.5206, 0.0012}, // Pr
-      {0.0118, 0.6889, 0.0017}     // He
+    //std::array<float, 3> kDCAxyResolutionParams[static_cast<int>(species::kNspecies)] = {
+    //  {0.0032, 0.5206, 0.0012}, // Pr
+    //  {0.0118, 0.6889, 0.0017}     // He
+    //};
+    //std::array<float, 3> kDCAzResolutionParams[static_cast<int>(species::kNspecies)] = {
+    //  {0.0021, 1.1122, 0.0021},    // Pr
+    //  {0.1014, 1.7512, 0.0024}     // He
+    //};
+
+    std::array<float, 4> kDCAxyResolutionParams[static_cast<int>(species::kNspecies)] = {
+      // mean, par0, par1, par2
+      {8.19e-5, 0.004, 0.0026, 1.1741},    // Pr
+      //{0., 0.0010, 0.0080, 0.73},    // Pr from Mario
+      {1.09e-4, 0.0011, 0.0065, 1.0399}       // He
     };
-    std::array<float, 3> kDCAzResolutionParams[static_cast<int>(species::kNspecies)] = {
-      {0.0021, 1.1122, 0.0021},    // Pr
-      {0.1014, 1.7512, 0.0024}     // He
+    std::array<float, 4> kDCAzResolutionParams[static_cast<int>(species::kNspecies)] = {
+      // mean, par0, par1, par2
+      {1.18e-4, 0.0020, 0.0025, 1.3460},   // Pr
+      //{0., -0.0044, 0.0152, 0.47},   // Pr from Mario
+      {9.36e-5, 0.0019, 0.0080, 1.416},  // He
     };
     
-    std::array<float, 5> kHeTPCParams = {-178.17, 0.2942, 2.0095, 1.6669, 3.4239};
-    float kHeTPCResolution = 0.063;
+    std::array<float, 5> kHeTPCParams = {-162.83, -0.4007, 1.1513, 0.9589, 2.7651};
+    float kHeTPCResolution = 0.061;
 
     std::array<float, 3> kITSParams[static_cast<int>(species::kNspecies)] = {
       {1.0228, 1.9634, 2.2081},  // Pr from Ka fitting
       //{0.6389, 3.4378, 2.3707},  // Pr
       {2.6916, 1.2630, 4.8939}   // He
+    };
+    std::array<float, 3> kITSParamsMC[static_cast<int>(species::kNspecies)] = {
+      {1.5273, 1.8027, 2.8959},  // Pr 
+      {2.4882, 1.7105, 7.3087}   // He
     };
     
     std::array<float, 3> kITSResolutionParams[static_cast<int>(species::kNspecies)] = {
@@ -56,29 +74,48 @@ namespace parametrisation
       {0.1132, -0.0135, 0.0001}  // He
     };
 
+    std::array<float, 3> kITSResolutionParamsMC[static_cast<int>(species::kNspecies)] = {
+      {0.1300, 0., 0.},          // Pr, constant
+      {0.0885, 0.0015, -0.0010}  // He
+    };
+
     std::array<float, 3> kPrTOFParams = {0.9443, -0.0101, 0.0037};
     std::array<float, 2> kPrTOFResolutionParams = {-0.0059, 0.0302};
 
     std::array<float, 2> kHePidTrkParams = {0.1593, -0.0445};
 }
 
+
 // -------------------------------------------- DCA ----------------------------------------------------
 
 float ComputeNsigmaDCA(const float pt, const float dca, const int iSpecies, const char * dcaType = "xy") {
   
-  std::array<float, 3> parameters;
+  //std::array<float, 3> parameters;
+  std::array<float, 4> parameters;
   if (std::strcmp(dcaType, "xy") == 0) {
     parameters = parametrisation::kDCAxyResolutionParams[iSpecies];
   } else if (std::strcmp(dcaType, "z") == 0) {
-    parameters = parametrisation::kDCAxyResolutionParams[iSpecies];
+    parameters = parametrisation::kDCAzResolutionParams[iSpecies];
   } else {
     std::cout << "Invalid dcaType. Accepted types are 'xy' 'z'" << std::endl;
-    parameters = {0., 0., 0.};
+    //parameters = {0., 0., 0.};
+    parameters = {0., 0., 0., 0.};
   }
-  const float sigma = parameters[0] *
-                      std::exp(- std::abs(pt) * parameters[1]) +
-                      parameters[2];
-  return dca / sigma;
+
+  //const float sigma = parameters[0] *
+  //                    std::exp(- std::abs(pt) * parameters[1]) +
+  //                    parameters[2];
+  //return dca / sigma;
+
+  //const float sigma = std::sqrt(parameters[1] * parameters[1] +
+  //                             parameters[2] * parameters[2] / (pt * pt) +
+  //                             parameters[3] * parameters[3] / (pt * pt * pt * pt));
+  
+  const float sigma = parameters[1] +
+                    parameters[2]/std::pow(std::abs(pt), parameters[3]);
+  const float mean = parameters[0];
+  return (dca - mean) / sigma;
+  
 }
 
 float ComputeNsigmaDCAxyHe(const float pt, const float dcaxy) {

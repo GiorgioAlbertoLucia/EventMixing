@@ -34,13 +34,13 @@ void mixingLi4(const char * configFileName = "config/configMixingLi4.yml")
 {   
     TStopwatch timer;
     HistogramsQA histQA;
+    YAML::Node config = YAML::LoadFile(configFileName);
 
-    const char * candidatesFileName = "/home/galucia/EventMixing/output/inputCands.root";
-    const char * collisionsFileName = "/home/galucia/EventMixing/output/inputColls.root";
+    std::string candidatesFileName = config["inputCands"].as<std::string>();
+    std::string collisionsFileName = config["inputColls"].as<std::string>();
     const char * candidatesTreeName = "O2he3hadtable";
     const char * collisionsTreeName = "O2he3hadmult";
 
-    YAML::Node config = YAML::LoadFile(configFileName);
     const bool doMerge = config["doMerge"].as<bool>();
     const int mixingStrategy = config["mixingStrategy"].as<int>();
     const int mixingDepth = config["mixingDepth"].as<int>();
@@ -51,12 +51,12 @@ void mixingLi4(const char * configFileName = "config/configMixingLi4.yml")
 
     if (doMerge) {
         std::string inputFileName = config["inputFileName"].as<std::string>();
-        mergeTrees(inputFileName.c_str(), candidatesFileName, collisionsFileName, candidatesTreeName, collisionsTreeName);
+        mergeTrees(inputFileName.c_str(), candidatesFileName.c_str(), collisionsFileName.c_str(), candidatesTreeName, collisionsTreeName);
     }
 
-    TFile *inputCandsFile = TFile::Open(candidatesFileName);
+    TFile *inputCandsFile = TFile::Open(candidatesFileName.c_str());
     TTree *inputCandidateTree = (TTree *)inputCandsFile->Get(candidatesTreeName);
-    TFile *inputCollsFile = TFile::Open(collisionsFileName);
+    TFile *inputCollsFile = TFile::Open(collisionsFileName.c_str());
     TTree *inputCollisionTree = (TTree *)inputCollsFile->Get(collisionsTreeName);
 
     std::vector<He3Candidate> he3Candidates;
