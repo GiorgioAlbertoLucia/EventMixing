@@ -36,8 +36,11 @@ void mixingLi4(const char * configFileName = "config/configMixingLi4.yml")
     HistogramsQA histQA;
     YAML::Node config = YAML::LoadFile(configFileName);
 
-    std::string candidatesFileName = config["inputCands"].as<std::string>();
-    std::string collisionsFileName = config["inputColls"].as<std::string>();
+    //std::string candidatesFileName = config["inputCands"].as<std::string>();
+    //std::string collisionsFileName = config["inputColls"].as<std::string>();
+
+    const char * candidatesFileName = "output/inputCands.root";
+    const char * collisionsFileName = "output/inputColls.root";
     const char * candidatesTreeName = "O2he3hadtable";
     const char * collisionsTreeName = "O2he3hadmult";
 
@@ -51,12 +54,17 @@ void mixingLi4(const char * configFileName = "config/configMixingLi4.yml")
 
     if (doMerge) {
         std::string inputFileName = config["inputFileName"].as<std::string>();
-        mergeTrees(inputFileName.c_str(), candidatesFileName.c_str(), collisionsFileName.c_str(), candidatesTreeName, collisionsTreeName);
+        mergeTrees(inputFileName.c_str(), 
+                    //candidatesFileName.c_str(), collisionsFileName.c_str(), 
+                    candidatesFileName, collisionsFileName, 
+                    candidatesTreeName, collisionsTreeName);
     }
 
-    TFile *inputCandsFile = TFile::Open(candidatesFileName.c_str());
+    //TFile *inputCandsFile = TFile::Open(candidatesFileName.c_str());
+    TFile *inputCandsFile = TFile::Open(candidatesFileName);
     TTree *inputCandidateTree = (TTree *)inputCandsFile->Get(candidatesTreeName);
-    TFile *inputCollsFile = TFile::Open(collisionsFileName.c_str());
+    //TFile *inputCollsFile = TFile::Open(collisionsFileName.c_str());
+    TFile *inputCollsFile = TFile::Open(collisionsFileName);
     TTree *inputCollisionTree = (TTree *)inputCollsFile->Get(collisionsTreeName);
 
     std::vector<He3Candidate> he3Candidates;
@@ -69,8 +77,10 @@ void mixingLi4(const char * configFileName = "config/configMixingLi4.yml")
     inputCollsFile->Close();
 
     std::string outputFileName = config["outputFileName"].as<std::string>();
-    auto outputFile = TFile::Open(outputFileName.c_str(), "RECREATE"); 
+    auto outputFile = TFile::Open(outputFileName.c_str(), "RECREATE");
     auto outputTree = new TTree("MixedTree", "MixedTree");
+    outputTree->SetAutoFlush(10000);   // flush every 10k entries
+    outputTree->SetAutoSave(100000);   // write tree header every 100k entries
 
     timer.Start();
     Mixer mixer(hadCandidates, he3Candidates, collisionCandidates, collisionBrackets, mixingDepth, is23);
@@ -84,6 +94,7 @@ void mixingLi4(const char * configFileName = "config/configMixingLi4.yml")
     }
     timer.Stop();
     std::cout << "Event mixing completed in " << timer.RealTime() << " seconds." << std::endl;
+    mixer.reset();
 
     outputFile->cd();
     outputTree->Write();
