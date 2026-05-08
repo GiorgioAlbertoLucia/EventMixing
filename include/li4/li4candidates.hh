@@ -35,9 +35,10 @@ class HadCandidate: public Candidate
             tree->SetBranchAddress("fPIDtrkHad", &fPIDtrkHad);
             tree->SetBranchAddress("fSharedClustersHad", &fSharedClustersHad);
             
-            //tree->SetBranchAddress("fNSigmaTPCHad", &fNSigmaTPCHad);
-            tree->SetBranchAddress("fNSigmaTPCHadPr", &fNSigmaTPCHad);
-            tree->SetBranchAddress("fNSigmaTOFHadPr", &fNSigmaTOFHad);
+            tree->SetBranchAddress("fNSigmaTPCHad", &fNSigmaTPCHad);
+            tree->SetBranchAddress("fNSigmaTPCHad", &fNSigmaTOFHad);
+            //tree->SetBranchAddress("fNSigmaTPCHadPr", &fNSigmaTPCHad);
+            //tree->SetBranchAddress("fNSigmaTOFHadPr", &fNSigmaTOFHad);
             
             tree->SetBranchAddress("fChi2TPCHad", &fChi2TPCHad);
         }
@@ -191,9 +192,10 @@ void Li4Candidate::setBranch(TTree* tree)
     tree->Branch("fSharedClustersHad", &fHad.fSharedClustersHad);
     tree->Branch("fNSigmaTPCHe3", &fHe3.fNSigmaTPCHe3);
     
-    //tree->Branch("fNSigmaTPCHad", &fHad.fNSigmaTPCHad);
-    tree->Branch("fNSigmaTPCHadPr", &fHad.fNSigmaTPCHad);
-    tree->Branch("fNSigmaTOFHadPr", &fHad.fNSigmaTOFHad);
+    tree->Branch("fNSigmaTPCHad", &fHad.fNSigmaTPCHad);
+    tree->Branch("fNSigmaTOFHad", &fHad.fNSigmaTOFHad);
+    //tree->Branch("fNSigmaTPCHadPr", &fHad.fNSigmaTPCHad);
+    //tree->Branch("fNSigmaTOFHadPr", &fHad.fNSigmaTOFHad);
 
     tree->Branch("fChi2TPCHe3", &fHe3.fChi2TPCHe3);
     tree->Branch("fChi2TPCHad", &fHad.fChi2TPCHad);
