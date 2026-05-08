@@ -137,6 +137,12 @@ class Mixer
 
         void performEventMixing(TTree* outputTree, HistogramsQA& histQA);
         void performAngleMixing(TTree* outputTree, HistogramsQA& histQA);
+        void reset() {
+            fHadrons.clear();
+            fHe3s.clear();
+            fCollisions.clear();
+            fCollisionBrackets.clear();
+        }
 
     private:
         std::vector<HadCandidate> fHadrons;
@@ -176,8 +182,6 @@ void Mixer::performEventMixing(TTree* outputTree, HistogramsQA& histQA)
         }
         return seed;
     };
-    std::unordered_set<size_t> processedCandidates;
-
     
     std::cout << "--------------------------------" << std::endl;
     std::cout << "Starting event mixing with " << fHadrons.size() << " hadrons and " 
@@ -195,6 +199,8 @@ void Mixer::performEventMixing(TTree* outputTree, HistogramsQA& histQA)
         li4Candidate.setHe3(he3Cand);
         int iBin = hVertexMultiplicity.getBinIndex(collCand.fZVertex, collCand.fCentralityFT0C);
         histQA.hHe3Unique->Fill(he3Cand.fPtHe3);
+        
+        std::unordered_set<size_t> processedCandidates;
 
         for (size_t iDepth = 0; static_cast<int>(iDepth) < fMixingDepth; iDepth++)
         {
