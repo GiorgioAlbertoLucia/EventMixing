@@ -36,7 +36,7 @@ class HadCandidate: public Candidate
             tree->SetBranchAddress("fSharedClustersHad", &fSharedClustersHad);
             
             tree->SetBranchAddress("fNSigmaTPCHad", &fNSigmaTPCHad);
-            tree->SetBranchAddress("fNSigmaTPCHad", &fNSigmaTOFHad);
+            tree->SetBranchAddress("fNSigmaTOFHad", &fNSigmaTOFHad);
             //tree->SetBranchAddress("fNSigmaTPCHadPr", &fNSigmaTPCHad);
             //tree->SetBranchAddress("fNSigmaTOFHadPr", &fNSigmaTOFHad);
             
