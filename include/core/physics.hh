@@ -56,5 +56,18 @@ namespace physics {
         return phi + randomAngle;
     }
 
+    float cosPAngle(const std::array<float, 3>& p1, const std::array<float, 3>& p2) {
+        float px1 = p1[0] * cos(p1[2]);
+        float py1 = p1[0] * sin(p1[2]);
+        float pz1 = p1[0] * sinh(p1[1]);
+        float px2 = p2[0] * cos(p2[2]);
+        float py2 = p2[0] * sin(p2[2]);
+        float pz2 = p2[0] * sinh(p2[1]);
+        float dotProduct = px1 * px2 + py1 * py2 + pz1 * pz2;
+        float magnitudeP1 = sqrt(px1 * px1 + py1 * py1 + pz1 * pz1);
+        float magnitudeP2 = sqrt(px2 * px2 + py2 * py2 + pz2 * pz2);
+        return dotProduct / (magnitudeP1 * magnitudeP2);
+    }
+
 } // namespace physics
 
